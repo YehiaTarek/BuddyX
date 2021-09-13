@@ -1,0 +1,108 @@
+import Base64 from './base64';
+
+export default class WatsonChat {
+  constructor() {
+    this.url = 'https://api.eu-gb.assistant.watson.cloud.ibm.com/instances/4fc34b86-7803-48e2-822a-9b24eb4d2186';
+    this.iam_apikey = 'ppRd79dnmRpuamfK_AzAfxhJMvensDrYSV56F8Zgm-RG';
+    this.workspaceId = '13001194-3515-4f7c-bbe9-a8e0f088fd6c';
+    
+  }
+
+  init(url, iam_apikey, workspaceId, shouldSendAnalytics = false) {
+    this.url = url;
+    this.iam_apikey = iam_apikey;
+    this.workspaceId = workspaceId;
+  }
+
+  sendMessage(messages, input, callback) {
+    if (input && input.length > 0) {
+      const obj = {};
+
+      obj.workspace_id = this.workspaceId;
+      obj.input = { text: input };
+      // make a fetch POST req here for watson communication
+      const iam_apikey_encoded = Base64.btoa(`apikey:${this.iam_apikey}`);
+      let data;
+      fetch(
+        `${this.url}/v1/workspaces/${
+          this.workspaceId
+        }/message?version=2018-09-20`,
+        {
+          headers: {
+            Authorization: `Basic ${iam_apikey_encoded}`,
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          method: 'POST',
+          body: JSON.stringify(obj),
+        },
+      )
+        .then(res => res.json())
+        .then((data) => {
+          const msg = data.output.text;
+          console.log(data.output) 
+          let timeNow = new Date().toLocaleTimeString();
+          timeNow = timeNow.substr(0, timeNow.lastIndexOf(':'));
+          const msgTime = this.convertTimeToAMPM(timeNow);
+          if (msg && msg.length > 0) {
+            messages.push(Object.assign({}, { msg, isWatson: true, time: msgTime }));
+          } else {
+            messages.push(Object.assign(
+              {},
+              {
+                msg: "I am afraid I do not understand what you are asking, please re-phrase your question.",
+                isWatson: true,
+                time: msgTime,
+              },
+            ));
+          }
+          return callback(null, messages);
+        })
+        .catch((err) => {
+          console.log(err);
+          let timeNow = new Date().toLocaleTimeString();
+          timeNow = timeNow.substr(0, timeNow.lastIndexOf(':'));
+          const msgTime = this.convertTimeToAMPM(timeNow);
+          if (this.shouldSendAnalytics) {
+            this.sendBotAnalytics(data);
+          }
+          messages.push(Object.assign(
+            {},
+            {
+              msg: "I am afraid I do not understand what you are asking, please re-phrase your question.",
+              isWatson: true,
+              time: msgTime,
+            },
+          ));
+          return callback(null, messages);
+        });
+    }
+  }
+  convertTimeToAMPM(time) {
+    // Check correct time format and split into components
+    time = time
+      .toString()
+      .match(/^([01]\d|2[0-3])(:)([0-5]\d)(:[0-5]\d)?$/) || [time];
+
+    if (time.length > 1) {
+      // If time format correct
+      time = time.slice(1); // Remove full string match value
+      time[5] = +time[0] < 12 ? 'AM' : 'PM'; // Set AM/PM
+      time[0] = +time[0] % 12 || 12; // Adjust hours
+    }
+    return time.join(''); // return adjusted time or original string
+  }
+
+  sendBotAnalytics(responseData) {
+    if (responseData.intents && responseData.intents.length > 0) {
+      responseData.intents.map((singleIntent) => {
+        WL.Analytics.log({ 'Chat-Intents': singleIntent.intent }, 'BotAnalytics');
+        const intentConfidence = {};
+        intentConfidence[`intent:${singleIntent.intent}`] = singleIntent.confidence;
+        WL.Analytics.log(intentConfidence, 'IntentAnalytics');
+      });
+    }
+
+    WL.Analytics.send();
+  }
+}
