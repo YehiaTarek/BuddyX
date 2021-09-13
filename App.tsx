@@ -30,13 +30,13 @@ import '@firebase/firestore';
 import {Icon} from 'react-native-elements';
 
 var firebaseConfig = {
-  apiKey: "AIzaSyDoJA2_TVL5aaOUXFh3zl_tQZbrVdZ5wq4",
-  authDomain: "buddy-7f8ca.firebaseapp.com",
-  projectId: "buddy-7f8ca",
-  storageBucket: "buddy-7f8ca.appspot.com",
-  messagingSenderId: "31454782285",
-  appId: "1:31454782285:web:aa355f4a389f1641118d04",
-  measurementId: "G-00CC0YBVL5"
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: "",
+  measurementId: ""
 };
 
 
