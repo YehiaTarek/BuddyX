@@ -2,9 +2,9 @@ import Base64 from './base64';
 
 export default class WatsonChat {
   constructor() {
-    this.url = 'https://api.eu-gb.assistant.watson.cloud.ibm.com/instances/4fc34b86-7803-48e2-822a-9b24eb4d2186';
-    this.iam_apikey = 'ppRd79dnmRpuamfK_AzAfxhJMvensDrYSV56F8Zgm-RG';
-    this.workspaceId = '13001194-3515-4f7c-bbe9-a8e0f088fd6c';
+    this.url = '';
+    this.iam_apikey = '';
+    this.workspaceId = '';
     
   }
 
